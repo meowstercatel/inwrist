@@ -1,0 +1,17 @@
+<resources>
+    <style name="Theme.InWrist" parent="@android:style/Theme.DeviceDefault">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorAccent">@color/inpost_yellow</item>
+        <item name="android:colorPrimary">@color/inpost_yellow</item>
+    </style>
+
+    <style name="TimeText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+        <item name="android:format12Hour">h:mm</item>
+        <item name="android:format24Hour">HH:mm</item>
+        <item name="android:textColor">@color/on_surface</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+</resources>
