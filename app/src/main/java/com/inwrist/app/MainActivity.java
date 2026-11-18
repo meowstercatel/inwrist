@@ -39,6 +39,7 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         adapter.notifyDataSetChanged();
+        ParcelRepository.refresh(this, adapter::notifyDataSetChanged);
     }
 
     private final class ParcelAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -78,8 +79,7 @@ public class MainActivity extends Activity {
             View view = holder.itemView;
             switch (getItemViewType(position)) {
                 case TYPE_HEADER:
-                    ((TextView) view).setText(
-                            getString(R.string.ready_count, ParcelRepository.readyCount()));
+                    ((TextView) view).setText(headerText());
                     break;
                 case TYPE_PARCEL:
                     bindParcel(view, parcels().get(position - 1));
@@ -91,6 +91,21 @@ public class MainActivity extends Activity {
                             startActivity(new Intent(MainActivity.this, SettingsActivity.class)));
                     break;
             }
+        }
+
+        private String headerText() {
+            switch (ParcelRepository.getState()) {
+                case LOGGED_OUT:
+                    return getString(R.string.logged_out);
+                case ERROR:
+                    return getString(R.string.load_failed);
+                case LOADING:
+                    if (parcels().isEmpty()) return getString(R.string.loading);
+                    break;
+                default:
+                    if (parcels().isEmpty()) return getString(R.string.no_parcels);
+            }
+            return getString(R.string.ready_count, ParcelRepository.readyCount());
         }
 
         private void bindParcel(View view, Parcel parcel) {

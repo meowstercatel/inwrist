@@ -3,11 +3,14 @@
 
     <string name="ready_count">Do odbioru: %1$d</string>
     <string name="settings">Ustawienia</string>
-    <string name="settings_placeholder">Ustawienia</string>
     <string name="parcel_not_found">Nie znaleziono paczki</string>
     <string name="pickup_code">Kod odbioru</string>
     <string name="expires_at">Ważna do: %1$s</string>
-    <string name="open_locker">Otwórz skrytkę</string>
-    <string name="locker_opened">Skrytka otwarta!</string>
-    <string name="locker_open_failed">Nie udało się otworzyć</string>
+
+    <string name="loading">Ładowanie…</string>
+    <string name="no_parcels">Brak paczek</string>
+    <string name="load_failed">Błąd pobierania</string>
+    <string name="logged_in">Zalogowano</string>
+    <string name="logged_out">Nie zalogowano</string>
+    <string name="logout">Wyloguj</string>
 </resources>

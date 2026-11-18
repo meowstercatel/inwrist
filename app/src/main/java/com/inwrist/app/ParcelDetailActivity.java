@@ -13,25 +13,12 @@ public class ParcelDetailActivity extends Activity {
 
     public static final String EXTRA_PARCEL_ID = "parcel_id";
 
-    private String parcelId;
-    private String message;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parcel_detail);
 
-        parcelId = getIntent().getStringExtra(EXTRA_PARCEL_ID);
-        findViewById(R.id.open_locker).setOnClickListener(v -> {
-            message = getString(ParcelRepository.openLocker(parcelId)
-                    ? R.string.locker_opened
-                    : R.string.locker_open_failed);
-            render();
-        });
-        render();
-    }
-
-    private void render() {
+        String parcelId = getIntent().getStringExtra(EXTRA_PARCEL_ID);
         Parcel parcel = parcelId == null ? null : ParcelRepository.getById(parcelId);
         TextView sender = findViewById(R.id.sender);
 
@@ -42,25 +29,18 @@ public class ParcelDetailActivity extends Activity {
         }
 
         boolean ready = parcel.status == ParcelStatus.READY_TO_PICKUP;
-        int readyVisibility = ready ? View.VISIBLE : View.GONE;
 
         sender.setText(parcel.sender);
         this.<TextView>findViewById(R.id.tracking_number)
                 .setText(ParcelRepository.shortNumber(parcel.trackingNumber));
         this.<TextView>findViewById(R.id.status).setText(parcel.status.label);
 
-        findViewById(R.id.pickup_section).setVisibility(readyVisibility);
+        findViewById(R.id.pickup_section).setVisibility(ready ? View.VISIBLE : View.GONE);
         this.<TextView>findViewById(R.id.pickup_code).setText(parcel.pickupCode);
         this.<TextView>findViewById(R.id.expires_at)
                 .setText(getString(R.string.expires_at, parcel.expiresAt));
 
         this.<TextView>findViewById(R.id.locker)
                 .setText(parcel.lockerName + "\n" + parcel.lockerAddress);
-
-        findViewById(R.id.open_locker).setVisibility(readyVisibility);
-
-        TextView messageView = findViewById(R.id.message);
-        messageView.setVisibility(message == null ? View.GONE : View.VISIBLE);
-        messageView.setText(message);
     }
 }
