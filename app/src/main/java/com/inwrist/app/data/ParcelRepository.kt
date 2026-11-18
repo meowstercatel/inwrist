@@ -1,53 +1,57 @@
 package com.inwrist.app.data
 
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import java.io.IOException
+import java.util.concurrent.Executors
+
 object ParcelRepository {
 
-    private val items = mutableListOf(
-        Parcel(
-            "1",
-            "520113014230722029585646",
-            "Allegro",
-            ParcelStatus.READY_TO_PICKUP,
-            "WAW123M",
-            "ul. Marszałkowska 10, Warszawa",
-            "482913",
-            "05.11, 14:30"
-        ),
-        Parcel(
-            "2",
-            "630220114230722011223344",
-            "Zalando",
-            ParcelStatus.IN_TRANSIT,
-            "WAW45A",
-            "ul. Puławska 145, Warszawa",
-            "------",
-            "-"
-        ),
-        Parcel(
-            "3",
-            "610330114230722099887766",
-            "Empik",
-            ParcelStatus.PICKED_UP,
-            "KRA01N",
-            "ul. Floriańska 3, Kraków",
-            "------",
-            "-"
-        )
-    )
-
-    val parcels: List<Parcel>
-        get() = items
-
-    fun getById(id: String): Parcel? = items.firstOrNull { it.id == id }
-
-    fun readyCount(): Int = items.count { it.status == ParcelStatus.READY_TO_PICKUP }
-
-    fun openLocker(id: String): Boolean {
-        val index = items.indexOfFirst { it.id == id }
-        if (index < 0 || items[index].status != ParcelStatus.READY_TO_PICKUP) return false
-        items[index] = items[index].copy(status = ParcelStatus.PICKED_UP)
-        return true
+    enum class State {
+        IDLE, LOADING, LOADED, LOGGED_OUT, ERROR
     }
+
+    private val executor = Executors.newSingleThreadExecutor()
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    var parcels: List<Parcel> = emptyList()
+        private set
+
+    var state: State = State.IDLE
+        private set
+
+    fun refresh(context: Context, onDone: () -> Unit) {
+        val tokens = TokenStore(context)
+        if (!tokens.isLoggedIn) {
+            parcels = emptyList()
+            state = State.LOGGED_OUT
+            onDone()
+            return
+        }
+        state = State.LOADING
+        executor.execute {
+            var fetched: List<Parcel>? = null
+            val next = try {
+                fetched = InPostClient(tokens).fetchTrackedParcels()
+                State.LOADED
+            } catch (e: InPostClient.AuthException) {
+                State.LOGGED_OUT
+            } catch (e: IOException) {
+                State.ERROR
+            }
+            mainHandler.post {
+                if (fetched != null) parcels = fetched
+                if (next == State.LOGGED_OUT) parcels = emptyList()
+                state = next
+                onDone()
+            }
+        }
+    }
+
+    fun getById(id: String): Parcel? = parcels.firstOrNull { it.id == id }
+
+    fun readyCount(): Int = parcels.count { it.status == ParcelStatus.READY_TO_PICKUP }
 
     fun shortNumber(trackingNumber: String): String {
         if (trackingNumber.length <= 8) return trackingNumber

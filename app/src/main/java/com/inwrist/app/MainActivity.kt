@@ -33,6 +33,7 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         adapter.notifyDataSetChanged()
+        ParcelRepository.refresh(this) { adapter.notifyDataSetChanged() }
     }
 
     private inner class ParcelAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -57,7 +58,7 @@ class MainActivity : Activity() {
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             val view = holder.itemView
             when (getItemViewType(position)) {
-                TYPE_HEADER -> (view as TextView).text = getString(R.string.ready_count, ParcelRepository.readyCount())
+                TYPE_HEADER -> (view as TextView).text = headerText()
                 TYPE_PARCEL -> bindParcel(view, parcels[position - 1])
                 TYPE_SETTINGS -> {
                     bindChip(view, getString(R.string.settings), null, R.drawable.bg_chip_child, R.color.on_surface)
@@ -66,6 +67,15 @@ class MainActivity : Activity() {
                     }
                 }
             }
+        }
+
+        private fun headerText(): String = when {
+            ParcelRepository.state == ParcelRepository.State.LOGGED_OUT -> getString(R.string.logged_out)
+            ParcelRepository.state == ParcelRepository.State.ERROR -> getString(R.string.load_failed)
+            parcels.isEmpty() && ParcelRepository.state == ParcelRepository.State.LOADING ->
+                getString(R.string.loading)
+            parcels.isEmpty() -> getString(R.string.no_parcels)
+            else -> getString(R.string.ready_count, ParcelRepository.readyCount())
         }
 
         private fun bindParcel(view: View, parcel: Parcel) {
